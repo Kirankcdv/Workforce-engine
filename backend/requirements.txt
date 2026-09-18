@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+python-dotenv
+pymongo
+pypdf
+requests
+scikit-learn
