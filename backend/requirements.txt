@@ -5,4 +5,4 @@ pymongo
 pypdf
 requests
 scikit-learn
-google-generativeais
+google-generativeai

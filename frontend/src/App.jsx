@@ -18,6 +18,9 @@ function App() {
   const [alerts, setAlerts] = useState([])
   const [showDashboard, setShowDashboard] = useState(false)
 
+  const [scenarioAnswer, setScenarioAnswer] = useState('')
+  const [scenarioResult, setScenarioResult] = useState(null)
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0])
     setSkills([])
@@ -46,6 +49,8 @@ function App() {
     setSelectedSkill(skillObj)
     setChallenge(null)
     setResult(null)
+    setScenarioAnswer('')
+    setScenarioResult(null)
     setLoading(true)
     setError('')
     try {
@@ -77,6 +82,17 @@ function App() {
       setError(err.response?.data?.detail || 'Evaluation failed')
     }
     setLoading(false)
+  }
+
+  const submitScenarioAnswer = () => {
+    const keywords = challenge.ideal_answer_keywords || []
+    const answerLower = scenarioAnswer.toLowerCase()
+    const matched = keywords.filter(k => answerLower.includes(k.toLowerCase()))
+    setScenarioResult({
+      matched,
+      missed: keywords.filter(k => !matched.includes(k)),
+      score: keywords.length ? Math.round((matched.length / keywords.length) * 100) : 0
+    })
   }
 
   const loadDashboard = async () => {
@@ -148,7 +164,22 @@ function App() {
           <h2>3. Scenario: {challenge.skill}</h2>
           <p><strong>Scenario:</strong> {challenge.scenario}</p>
           <p><strong>Question:</strong> {challenge.question}</p>
-          <p className="note">Scenario-based scoring not wired up yet.</p>
+          <textarea
+            value={scenarioAnswer}
+            onChange={(e) => setScenarioAnswer(e.target.value)}
+            rows={5}
+            placeholder="Type your answer here..."
+          />
+          <button onClick={submitScenarioAnswer} disabled={!scenarioAnswer.trim()}>
+            Submit Answer
+          </button>
+          {scenarioResult && (
+            <div className="result">
+              <p className="score">{scenarioResult.score}% concept coverage</p>
+              <p>✅ Covered: {scenarioResult.matched.join(', ') || 'none'}</p>
+              <p>❌ Missed: {scenarioResult.missed.join(', ') || 'none'}</p>
+            </div>
+          )}
         </div>
       )}
 
