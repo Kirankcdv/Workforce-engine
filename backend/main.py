@@ -79,7 +79,7 @@ async def extract_skills(file: UploadFile = File(...)):
     if not text.strip():
         raise HTTPException(status_code=400, detail="Could not extract text from PDF")
 
-    model = genai.GenerativeModel("gemini-3.6-flash")
+    model = genai.GenerativeModel("gemini-3.5-flash-lite")
     prompt = f"""Extract technical skills claimed in this resume. Return ONLY a JSON array of objects, no markdown, no explanation. Each object must have:
 - "skill": the skill name (e.g. "Python", "Docker", "React")
 - "category": one of "language", "framework", "tool", "cloud", "database", "other"
@@ -111,7 +111,7 @@ async def generate_challenge(skill: str, category: str):
     if cache_key in challenge_cache:
         return challenge_cache[cache_key]
 
-    model = genai.GenerativeModel("gemini-2.5-flash-lite")
+    model = genai.GenerativeModel("gemini-3.5-flash-lite")
 
     if category in ["language", "framework"]:
                prompt = f"""Create a small, self-contained coding challenge to test practical proficiency in {skill}.
