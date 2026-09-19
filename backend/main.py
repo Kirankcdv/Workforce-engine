@@ -237,3 +237,99 @@ except Exception as e:
         "score": round(passed_count / total * 100, 1) if total else 0,
         "results": results
     }
+from datetime import datetime
+
+employees = [
+    {
+        "id": 1,
+        "name": "Aditi Rao",
+        "role": "Backend Engineer",
+        "hours_logged_weekly": 58,
+        "pto_days_taken_last_quarter": 1,
+        "overdue_tasks": 6,
+        "after_hours_messages": 24,
+    },
+    {
+        "id": 2,
+        "name": "Rohan Mehta",
+        "role": "Product Designer",
+        "hours_logged_weekly": 42,
+        "pto_days_taken_last_quarter": 4,
+        "overdue_tasks": 1,
+        "after_hours_messages": 3,
+    },
+    {
+        "id": 3,
+        "name": "Priya Nair",
+        "role": "DevOps Engineer",
+        "hours_logged_weekly": 61,
+        "pto_days_taken_last_quarter": 0,
+        "overdue_tasks": 9,
+        "after_hours_messages": 31,
+    },
+    {
+        "id": 4,
+        "name": "Karthik Iyer",
+        "role": "QA Engineer",
+        "hours_logged_weekly": 45,
+        "pto_days_taken_last_quarter": 3,
+        "overdue_tasks": 2,
+        "after_hours_messages": 5,
+    },
+]
+
+
+def compute_risk_score(emp):
+    score = 0
+    score += max(0, (emp["hours_logged_weekly"] - 40)) * 1.5
+    score += max(0, (3 - emp["pto_days_taken_last_quarter"])) * 5
+    score += emp["overdue_tasks"] * 3
+    score += emp["after_hours_messages"] * 1.2
+    return round(min(score, 100), 1)
+
+
+def risk_level(score):
+    if score >= 70:
+        return "urgent"
+    elif score >= 40:
+        return "watch"
+    return "stable"
+
+
+def generate_action(emp, score):
+    if score >= 70:
+        return f"Schedule urgent 1:1 with {emp['name']}'s manager this week; flag for HR review."
+    elif score >= 40:
+        return f"Check in with {emp['name']} informally; monitor workload over next 2 weeks."
+    return "No action needed."
+
+
+@app.get("/employees")
+def get_employees():
+    result = []
+    for emp in employees:
+        score = compute_risk_score(emp)
+        result.append({
+            **emp,
+            "risk_score": score,
+            "risk_level": risk_level(score),
+            "recommended_action": generate_action(emp, score),
+        })
+    return {"employees": result, "generated_at": datetime.utcnow().isoformat()}
+
+
+@app.get("/alerts")
+def get_alerts():
+    alerts = []
+    for emp in employees:
+        score = compute_risk_score(emp)
+        if score >= 70:
+            alerts.append({
+                "id": emp["id"],
+                "name": emp["name"],
+                "role": emp["role"],
+                "risk_score": score,
+                "action": generate_action(emp, score),
+                "triggered_at": datetime.utcnow().isoformat(),
+            })
+    return {"alerts": alerts, "count": len(alerts)}
