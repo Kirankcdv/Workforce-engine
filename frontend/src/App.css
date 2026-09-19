@@ -129,3 +129,45 @@ textarea {
   color: #9aa0ab;
   font-style: italic;
 }
+.alert-panel {
+  border-color: #7a2e2e;
+}
+
+.alert-item {
+  background: #241414;
+  border-radius: 6px;
+  padding: 0.8rem;
+  margin-top: 0.6rem;
+}
+
+.action-text {
+  color: #ffb4b4;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+.emp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.8rem;
+}
+
+.emp-table th, .emp-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #262b36;
+}
+
+.risk-urgent td:last-child {
+  color: #ff6b6b;
+  font-weight: 700;
+}
+
+.risk-watch td:last-child {
+  color: #f5c542;
+  font-weight: 700;
+}
+
+.risk-stable td:last-child {
+  color: #2dd4bf;
+}

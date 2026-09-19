@@ -14,6 +14,10 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const [employees, setEmployees] = useState([])
+  const [alerts, setAlerts] = useState([])
+  const [showDashboard, setShowDashboard] = useState(false)
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0])
     setSkills([])
@@ -71,6 +75,23 @@ function App() {
       setResult(res.data)
     } catch (err) {
       setError(err.response?.data?.detail || 'Evaluation failed')
+    }
+    setLoading(false)
+  }
+
+  const loadDashboard = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const [empRes, alertRes] = await Promise.all([
+        axios.get(`${API}/employees`),
+        axios.get(`${API}/alerts`)
+      ])
+      setEmployees(empRes.data.employees)
+      setAlerts(alertRes.data.alerts)
+      setShowDashboard(true)
+    } catch (err) {
+      setError('Failed to load dashboard')
     }
     setLoading(false)
   }
@@ -142,6 +163,53 @@ function App() {
             </div>
           ))}
         </div>
+      )}
+
+      <div className="card">
+        <h2>Workforce Risk Dashboard</h2>
+        <button onClick={loadDashboard} disabled={loading}>
+          {loading ? 'Loading...' : 'Load Dashboard'}
+        </button>
+      </div>
+
+      {showDashboard && (
+        <>
+          {alerts.length > 0 && (
+            <div className="card alert-panel">
+              <h2>🚨 Active Alerts ({alerts.length})</h2>
+              {alerts.map((a) => (
+                <div key={a.id} className="alert-item">
+                  <strong>{a.name}</strong> ({a.role}) — risk {a.risk_score}
+                  <div className="action-text">{a.action}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="card">
+            <h2>All Employees</h2>
+            <table className="emp-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Risk Score</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {employees.map((e) => (
+                  <tr key={e.id} className={`risk-${e.risk_level}`}>
+                    <td>{e.name}</td>
+                    <td>{e.role}</td>
+                    <td>{e.risk_score}</td>
+                    <td>{e.risk_level}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )
