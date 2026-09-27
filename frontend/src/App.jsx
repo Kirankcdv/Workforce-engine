@@ -113,135 +113,186 @@ function App() {
   }
 
   return (
-    <div className="app">
-      <h1>Active Workforce Pipeline Engine</h1>
-      <p className="subtitle">Team Hack Titans — Skill Verification Sandbox</p>
-
-      <div className="card">
-        <h2>1. Upload Resume</h2>
-        <input type="file" accept=".pdf" onChange={handleFileChange} />
-        <button onClick={extractSkills} disabled={!file || loading}>
-          {loading ? 'Processing...' : 'Extract Skills'}
-        </button>
-      </div>
-
-      {error && <div className="error">{error}</div>}
-
-      {skills.length > 0 && (
-        <div className="card">
-          <h2>2. Claimed Skills — Pick One to Verify</h2>
-          <div className="skill-list">
-            {skills.map((s, i) => (
-              <button
-                key={i}
-                className={`skill-chip ${selectedSkill?.skill === s.skill ? 'active' : ''}`}
-                onClick={() => pickSkill(s)}
-              >
-                {s.skill} <span className="category">{s.category}</span>
-              </button>
-            ))}
+    <div className="app-shell">
+      <header className="nav">
+        <div className="nav-inner">
+          <div className="brand">
+            <span className="brand-mark">◆</span>
+            <span className="brand-text">Workforce<span className="accent">Engine</span></span>
           </div>
+          <span className="badge">Hack Titans · Track 1 HR</span>
         </div>
-      )}
+      </header>
 
-      {challenge && challenge.type === 'code' && (
-        <div className="card">
-          <h2>3. Challenge: {challenge.skill}</h2>
-          <p>{challenge.problem_statement}</p>
-          <textarea
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            rows={10}
-          />
-          <button onClick={runEvaluation} disabled={loading}>
-            {loading ? 'Running...' : 'Submit & Verify'}
-          </button>
-        </div>
-      )}
+      <main className="app">
+        <section className="hero">
+          <h1>Active Workforce Pipeline Engine</h1>
+          <p className="subtitle">Verify skills with real execution. Catch burnout before it costs you a top performer.</p>
+        </section>
 
-      {challenge && challenge.type === 'scenario' && (
-        <div className="card">
-          <h2>3. Scenario: {challenge.skill}</h2>
-          <p><strong>Scenario:</strong> {challenge.scenario}</p>
-          <p><strong>Question:</strong> {challenge.question}</p>
-          <textarea
-            value={scenarioAnswer}
-            onChange={(e) => setScenarioAnswer(e.target.value)}
-            rows={5}
-            placeholder="Type your answer here..."
-          />
-          <button onClick={submitScenarioAnswer} disabled={!scenarioAnswer.trim()}>
-            Submit Answer
-          </button>
-          {scenarioResult && (
-            <div className="result">
-              <p className="score">{scenarioResult.score}% concept coverage</p>
-              <p>✅ Covered: {scenarioResult.matched.join(', ') || 'none'}</p>
-              <p>❌ Missed: {scenarioResult.missed.join(', ') || 'none'}</p>
+        {error && <div className="error">⚠ {error}</div>}
+
+        <section className="card">
+          <div className="card-head">
+            <span className="step-num">1</span>
+            <h2>Upload Resume</h2>
+          </div>
+          <div className="upload-row">
+            <label className="file-input">
+              <input type="file" accept=".pdf" onChange={handleFileChange} />
+              {file ? file.name : 'Choose PDF file'}
+            </label>
+            <button className="btn-primary" onClick={extractSkills} disabled={!file || loading}>
+              {loading ? 'Processing…' : 'Extract Skills'}
+            </button>
+          </div>
+        </section>
+
+        {skills.length > 0 && (
+          <section className="card">
+            <div className="card-head">
+              <span className="step-num">2</span>
+              <h2>Claimed Skills — Pick One to Verify</h2>
             </div>
-          )}
-        </div>
-      )}
-
-      {result && (
-        <div className="card result">
-          <h2>Result</h2>
-          <p className="score">{result.score}% verified ({result.passed}/{result.total} tests passed)</p>
-          {result.results.map((r, i) => (
-            <div key={i} className={`test-result ${r.passed ? 'pass' : 'fail'}`}>
-              <span>{r.passed ? '✅' : '❌'}</span> Input: {JSON.stringify(r.input)} | Expected: {JSON.stringify(r.expected)} | Got: {JSON.stringify(r.actual)}
-              {r.error && <div className="err-detail">{r.error}</div>}
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="card">
-        <h2>Workforce Risk Dashboard</h2>
-        <button onClick={loadDashboard} disabled={loading}>
-          {loading ? 'Loading...' : 'Load Dashboard'}
-        </button>
-      </div>
-
-      {showDashboard && (
-        <>
-          {alerts.length > 0 && (
-            <div className="card alert-panel">
-              <h2>🚨 Active Alerts ({alerts.length})</h2>
-              {alerts.map((a) => (
-                <div key={a.id} className="alert-item">
-                  <strong>{a.name}</strong> ({a.role}) — risk {a.risk_score}
-                  <div className="action-text">{a.action}</div>
-                </div>
+            <div className="skill-list">
+              {skills.map((s, i) => (
+                <button
+                  key={i}
+                  className={`skill-chip ${selectedSkill?.skill === s.skill ? 'active' : ''}`}
+                  onClick={() => pickSkill(s)}
+                >
+                  {s.skill} <span className="category">{s.category}</span>
+                </button>
               ))}
             </div>
-          )}
+          </section>
+        )}
 
-          <div className="card">
-            <h2>All Employees</h2>
-            <table className="emp-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Risk Score</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employees.map((e) => (
-                  <tr key={e.id} className={`risk-${e.risk_level}`}>
-                    <td>{e.name}</td>
-                    <td>{e.role}</td>
-                    <td>{e.risk_score}</td>
-                    <td>{e.risk_level}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {challenge && challenge.type === 'code' && (
+          <section className="card">
+            <div className="card-head">
+              <span className="step-num">3</span>
+              <h2>Challenge · {challenge.skill}</h2>
+            </div>
+            <p className="problem-text">{challenge.problem_statement}</p>
+            <textarea
+              className="code-input"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              rows={10}
+              spellCheck={false}
+            />
+            <button className="btn-primary" onClick={runEvaluation} disabled={loading}>
+              {loading ? 'Running…' : 'Submit & Verify'}
+            </button>
+          </section>
+        )}
+
+        {challenge && challenge.type === 'scenario' && (
+          <section className="card">
+            <div className="card-head">
+              <span className="step-num">3</span>
+              <h2>Scenario · {challenge.skill}</h2>
+            </div>
+            <p className="problem-text"><strong>Scenario:</strong> {challenge.scenario}</p>
+            <p className="problem-text"><strong>Question:</strong> {challenge.question}</p>
+            <textarea
+              className="code-input"
+              value={scenarioAnswer}
+              onChange={(e) => setScenarioAnswer(e.target.value)}
+              rows={5}
+              placeholder="Type your answer here..."
+            />
+            <button className="btn-primary" onClick={submitScenarioAnswer} disabled={!scenarioAnswer.trim()}>
+              Submit Answer
+            </button>
+            {scenarioResult && (
+              <div className="result-box">
+                <p className="score">{scenarioResult.score}% concept coverage</p>
+                <p className="detail-line pass-line">✅ Covered: {scenarioResult.matched.join(', ') || 'none'}</p>
+                <p className="detail-line fail-line">❌ Missed: {scenarioResult.missed.join(', ') || 'none'}</p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {result && (
+          <section className="card result-box">
+            <div className="card-head">
+              <h2>Verification Result</h2>
+            </div>
+            <p className="score">{result.score}% verified <span className="score-sub">({result.passed}/{result.total} tests passed)</span></p>
+            {result.results.map((r, i) => (
+              <div key={i} className={`test-result ${r.passed ? 'pass' : 'fail'}`}>
+                <span className="test-icon">{r.passed ? '✅' : '❌'}</span>
+                <span>Input: {JSON.stringify(r.input)} · Expected: {JSON.stringify(r.expected)} · Got: {JSON.stringify(r.actual)}</span>
+                {r.error && <div className="err-detail">{r.error}</div>}
+              </div>
+            ))}
+          </section>
+        )}
+
+        <section className="card">
+          <div className="card-head">
+            <h2>Workforce Risk Dashboard</h2>
           </div>
-        </>
-      )}
+          <button className="btn-primary" onClick={loadDashboard} disabled={loading}>
+            {loading ? 'Loading…' : 'Load Dashboard'}
+          </button>
+        </section>
+
+        {showDashboard && (
+          <>
+            {alerts.length > 0 && (
+              <section className="card alert-panel">
+                <div className="card-head">
+                  <h2>🚨 Active Alerts <span className="count-pill">{alerts.length}</span></h2>
+                </div>
+                {alerts.map((a) => (
+                  <div key={a.id} className="alert-item">
+                    <div className="alert-top">
+                      <strong>{a.name}</strong>
+                      <span className="alert-role">{a.role}</span>
+                      <span className="alert-risk">risk {a.risk_score}</span>
+                    </div>
+                    <div className="action-text">{a.action}</div>
+                  </div>
+                ))}
+              </section>
+            )}
+
+            <section className="card">
+              <div className="card-head">
+                <h2>All Employees</h2>
+              </div>
+              <table className="emp-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Risk Score</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees.map((e) => (
+                    <tr key={e.id} className={`risk-${e.risk_level}`}>
+                      <td>{e.name}</td>
+                      <td>{e.role}</td>
+                      <td>{e.risk_score}</td>
+                      <td><span className={`status-pill status-${e.risk_level}`}>{e.risk_level}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          </>
+        )}
+      </main>
+
+      <footer className="foot">
+        Built by Hack Titans 
+      </footer>
     </div>
   )
 }

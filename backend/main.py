@@ -2,6 +2,10 @@ import os
 import io
 import json
 import time
+import hashlib
+import subprocess
+import tempfile
+from datetime import datetime
 from dotenv import load_dotenv
 import google.generativeai as genai
 
@@ -22,6 +26,7 @@ app.add_middleware(
 )
 
 challenge_cache = {}
+skills_cache = {}
 
 
 def call_gemini_with_retry(model, prompt, max_retries=3):
@@ -71,6 +76,11 @@ async def extract_skills(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
     contents = await file.read()
+    file_hash = hashlib.sha256(contents).hexdigest()
+
+    if file_hash in skills_cache:
+        return skills_cache[file_hash]
+
     reader = PdfReader(io.BytesIO(contents))
     text = ""
     for page in reader.pages:
@@ -102,7 +112,9 @@ Resume text:
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail=f"Could not parse LLM response: {raw[:200]}")
 
-    return {"filename": file.filename, "skills": skills}
+    result = {"filename": file.filename, "skills": skills}
+    skills_cache[file_hash] = result
+    return result
 
 
 @app.post("/generate-challenge")
@@ -114,7 +126,7 @@ async def generate_challenge(skill: str, category: str):
     model = genai.GenerativeModel("gemini-3.5-flash-lite")
 
     if category in ["language", "framework"]:
-               prompt = f"""Create a small, self-contained coding challenge to test practical proficiency in {skill}.
+        prompt = f"""Create a small, self-contained coding challenge to test practical proficiency in {skill}.
 The candidate must implement a Python function named exactly `solve` that takes exactly one argument and returns a value.
 Return ONLY valid JSON, no markdown, with this exact structure:
 {{
@@ -155,12 +167,6 @@ Return ONLY valid JSON, no markdown, with this exact structure:
 
     challenge_cache[cache_key] = challenge
     return challenge
-import subprocess
-import tempfile
-
-
-import subprocess
-import tempfile
 
 
 @app.post("/evaluate-code")
@@ -237,7 +243,7 @@ except Exception as e:
         "score": round(passed_count / total * 100, 1) if total else 0,
         "results": results
     }
-from datetime import datetime
+
 
 employees = [
     {
